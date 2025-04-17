@@ -1,8 +1,7 @@
 {
-  "version": 2,
   "builds": [
     {
-      "src": "backend/server.js",
+      "src": "backend/api/index.js",
       "use": "@vercel/node"
     },
     {
@@ -12,12 +11,18 @@
   ],
   "routes": [
     {
-      "src": "/(manifest\\.json|catalog/.*|meta/.*|configure|.*configure.*)",
-      "dest": "backend/server.js"
+      "src": "/(manifest\\.json|catalog/.*|meta/.*)",
+      "dest": "backend/api/index.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "frontend/dist/$1"
+      "src": "/(configure|favicon\\.png|logo\\.png|background\\.png|.*\\.(js|css|png|jpg|ico|svg))",
+      "dest": "/frontend/dist/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/frontend/dist/index.html"
     }
-  ]
+  ],
+  "outputDirectory": "frontend/dist"
 }
+
