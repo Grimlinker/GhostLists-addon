@@ -1,5 +1,5 @@
 {
-    "name": "ghostlist-config",
+    "name": "ghostlist-addon-config",
     "version": "1.0.0",
     "type": "module",
     "description": "A pastel ghost-themed Stremio addon configurator using MDBList and RPDB",

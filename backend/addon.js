@@ -7,29 +7,27 @@ const { getManifest } = require("./lib/getManifest");
 
 const addon = express();
 
+// Helper to send JSON with caching headers
 const respond = function (res, data, opts = {}) {
   const cacheHeaders = [];
-  if (opts.cacheMaxAge) cacheHeaders.push(`max-age=${opts.cacheMaxAge}`);
-  if (opts.staleRevalidate) cacheHeaders.push(`stale-while-revalidate=${opts.staleRevalidate}`);
-  if (opts.staleError) cacheHeaders.push(`stale-if-error=${opts.staleError}`);
-
-  if (cacheHeaders.length > 0) {
+  if (opts.cacheMaxAge)      cacheHeaders.push(`max-age=${opts.cacheMaxAge}`);
+  if (opts.staleRevalidate)  cacheHeaders.push(`stale-while-revalidate=${opts.staleRevalidate}`);
+  if (opts.staleError)       cacheHeaders.push(`stale-if-error=${opts.staleError}`);
+  if (cacheHeaders.length) {
     res.setHeader("Cache-Control", cacheHeaders.join(", ") + ", public");
   }
-
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "*");
   res.setHeader("Content-Type", "application/json");
   res.json(data);
 };
 
+// Fetch metadata from MDBList API
 async function getMetaFromMDBList(type, imdbId, config = {}) {
   const apikey = config.rpdbkey || process.env.MDBLIST_API_KEY;
-
   const { data } = await axios.get("https://mdblist.com/api/", {
     params: { id: imdbId, apikey }
   });
-
   return {
     meta: {
       id: `mdblist:${data.idIMDb}`,
@@ -49,26 +47,40 @@ async function getMetaFromMDBList(type, imdbId, config = {}) {
   };
 }
 
-// ✨ Fix for frontend hosting on Vercel
-const distPath = path.resolve(__dirname, "../frontend/dist");
-addon.use("/configure", express.static(distPath));
-addon.get(["/", "/configure", "/:catalogChoices/configure"], (req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
+// 1) Redirect root to /configure/
+addon.get("/", (_, res) => {
+  res.redirect("/configure/");
 });
 
-// Manifest route
-addon.get(["/manifest.json", "/:catalogChoices/manifest.json"], (req, res) => {
-  const config = parseConfig(req.params.catalogChoices || "");
-  const manifest = getManifest(config);
+// 2) Serve the built React app from frontend/dist
+addon.use(
+  "/configure",
+  express.static(path.join(__dirname, "../frontend/dist"))
+);
 
-  respond(res, manifest, {
-    cacheMaxAge: 12 * 60 * 60,
-    staleRevalidate: 7 * 24 * 60 * 60,
-    staleError: 30 * 24 * 60 * 60
-  });
-});
+// 3) SPA fallback for any /configure/* route
+addon.get(
+  ["/configure/", "/configure/:catalogChoices/configure"],
+  (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  }
+);
 
-// Catalog routes with and without extra
+// 4) Manifest endpoint
+addon.get(
+  ["/manifest.json", "/:catalogChoices/manifest.json"],
+  (req, res) => {
+    const config = parseConfig(req.params.catalogChoices || "");
+    const manifest = getManifest(config);
+    respond(res, manifest, {
+      cacheMaxAge: 12 * 60 * 60,
+      staleRevalidate: 7 * 24 * 60 * 60,
+      staleError: 30 * 24 * 60 * 60
+    });
+  }
+);
+
+// 5) Catalog endpoint
 addon.get(
   [
     "/catalog/:type/:id.json",
@@ -80,7 +92,6 @@ addon.get(
     const { type, id } = req.params;
     const config = parseConfig(req.params.catalogChoices);
     const page = 1;
-
     try {
       const { data } = await axios.get("https://mdblist.com/api/userlist", {
         params: {
@@ -89,7 +100,6 @@ addon.get(
           page
         }
       });
-
       const metas = data.results.map(item => ({
         id: `mdblist:${item.idIMDb}`,
         type: item.type,
@@ -100,7 +110,6 @@ addon.get(
         background: item.backdrop,
         releaseInfo: item.year
       }));
-
       respond(res, { metas });
     } catch (err) {
       console.error("Catalog error:", err.message);
@@ -109,14 +118,13 @@ addon.get(
   }
 );
 
-// Meta route
+// 6) Meta endpoint
 addon.get(
   ["/meta/:type/:id.json", "/:catalogChoices/meta/:type/:id.json"],
   async (req, res) => {
     const { type, id } = req.params;
     const config = parseConfig(req.params.catalogChoices);
     const imdbId = id.replace("mdblist:", "").replace("tmdb:", "");
-
     try {
       const meta = await getMetaFromMDBList(type, imdbId, config);
       respond(res, meta, {
