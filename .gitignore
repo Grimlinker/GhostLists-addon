@@ -1,12 +1,6 @@
 # dependencies
 /node_modules
 
-# production
-# Only ignore dist at root level
-/dist
-!/frontend/dist
-
-
 # local env files
 .env
 .env.*.local
