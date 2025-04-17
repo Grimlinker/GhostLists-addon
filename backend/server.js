@@ -1,8 +1,13 @@
-const { createServer } = require("http");
+const express = require("express");
 const addon = require("./addon");
+
+const app = express();
+
+// Use the Express middleware from addon.js
+app.use(addon);
 
 const PORT = process.env.PORT || 3000;
 
-createServer(addon).listen(PORT, () => {
-  console.log(`GhostLists backend running on http://localhost:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`✅ GhostLists backend running at http://localhost:${PORT}`);
 });
