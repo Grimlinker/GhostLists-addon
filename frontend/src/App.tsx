@@ -5,15 +5,10 @@ import ConfigurePage from "@/pages/Configure";
 const App = () => {
   return (
     <ConfigProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/">
         <Routes>
-          {/* Redirect root to /configure */}
           <Route path="/" element={<Navigate to="/configure" replace />} />
-
-          {/* Main config page */}
           <Route path="/configure" element={<ConfigurePage />} />
-
-          {/* 404 fallback */}
           <Route path="*" element={<div className="p-6 text-center">404 – Not Found</div>} />
         </Routes>
       </BrowserRouter>
