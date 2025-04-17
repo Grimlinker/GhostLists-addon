@@ -15,6 +15,14 @@
       "dest": "backend/api/index.js"
     },
     {
+      "src": "/configure",
+      "dest": "frontend/dist/index.html"
+    },
+    {
+      "src": "/configure/.*",
+      "dest": "frontend/dist/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "frontend/dist/$1"
     }
