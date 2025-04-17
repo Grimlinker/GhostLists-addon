@@ -1,0 +1,53 @@
+# dependencies
+/node_modules
+
+# production
+/dist
+
+# local env files
+.env
+.env.*.local
+
+# IDEs and editors
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+
+# system files
+.DS_Store
+Thumbs.db
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# typescript
+*.tsbuildinfo
+
+# macOS ._ file artifacts
+**/._*
+
+# coverage
+coverage
+
+# misc
+*.log
+*.tgz
+
+# lockfiles (optional - only if you're not committing these)
+# package-lock.json
+# yarn.lock
+
+# Ignore dependencies and builds
+node_modules/
+dist/
+.vite/
+.next/
+.vercel/
+.vercel
+
+# Ignore BeamUp internal metadata
+.beamup
+
